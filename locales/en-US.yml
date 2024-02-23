@@ -1,0 +1,71 @@
+ping:
+  name: "ping"
+  description: "Command to test the connection to Discord."
+  pong: "Pong!"
+  latency: "Latência"
+  response_time: "Tempo de Resposta"
+
+help:
+  name: "help"
+  description: "Help command."
+  response: |+
+    Olá {0}! Sou um bot de Discord que lhe permite gerenciar suas aplicações hospedadas na [Square Cloud]({1}).
+    Para começar eu preciso ter acesso a sua conta, use o comando {2} e insira sua chave de API.
+  command_list: "Lista de Comandos"
+
+statistics:
+  name: "statistics"
+  description: "Show service statistics."
+  title: "Estatísticas da Square Cloud"
+  users: "Usuários"
+  apps: "Aplicações"
+  websites: "Websites"
+  ping: "Ping"
+
+login:
+  name: "login"
+  description: "Log in to your Square Cloud account using your API key."
+  modal:
+    title: "Fazer login"
+    api_key_input:
+      label: "Chave de API"
+      placeholder: "Cole sua chave de API aqui"
+  success: "Login efetuado com sucesso!"
+  failure: "Erro ao realizar login. Verifique se sua chave de API está correta e tente novamente."
+
+apps:
+  name: "apps"
+  description: "Manage your applications."
+  no_apps: "Você não possui nenhuma aplicação hospedada na Square Cloud."
+  select_app:
+    title: "Selecione uma aplicação"
+    description: "Selecione uma aplicação para gerenciar no menu abaixo."
+    footer: "Página {0} de {1}"
+    menu:
+      label: "Selecione uma aplicação"
+  loading: "Buscando informações da aplicação..."
+  status:
+    uptime: "Uptime"
+    cpu: "CPU"
+    ram: "RAM"
+    storage: "Armazenamento"
+    network_now: "Rede (agora)"
+    network_total: "Rede (total)"
+    requests: "Requests"
+  last_logs: "Últimos logs"
+  logs: "Logs"
+
+up:
+  name: "up"
+  description: "Upload an app to Square Cloud."
+
+  file:
+    name: "file"
+    description: "File in zip format with your application files."
+
+errors:
+  on_cooldown: "Espere **{0} segundos** para utilizar este comando novamente."
+  unauthenticated: |
+    Você precisa fazer login na sua conta da Square Cloud para usar este comando!
+    Você pode se autenticar usando o comando {0}.
+  unexpected_error: "Ocorreu um erro inesperado durante a execução deste comando:\n`{0}`"

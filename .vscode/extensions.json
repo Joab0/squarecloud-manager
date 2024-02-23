@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "ms-python.flake8",
+        "ms-pyright.pyright"
+    ]
+}
