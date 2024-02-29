@@ -42,7 +42,7 @@ class BotCore(commands.Bot):
             **kwargs,
         )
 
-        DefaultEmbed.set_default_color(0xFBFBB3)
+        DefaultEmbed.set_default_color(0x2563EB)
 
         Translator.load("./locales")
 
