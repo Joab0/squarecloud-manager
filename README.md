@@ -1,7 +1,6 @@
 # Square Cloud Manager
 
 O Square Cloud Manager é um bot para Discord que permtie gerenciar suas aplicações hospedadas na [Square Cloud](https://squarecloud.app/).
-O bot foi desenvolvido em [Python](https://python.org) usando [discord.py](https://github.com/Rapptz/discord.py).
 
 ## Requisitos
 
@@ -15,8 +14,8 @@ Siga os passoas abaixo para fazer a instalação.
 1. Clone o repositório.
 
 ```bash
-git clone https://github.com/Joab0/Square Cloud-bot
-cd Square Cloud-bot
+git clone https://github.com/Joab0/squarecloud-manager
+cd squarecloud-manager
 ```
 
 - Instale as dependências.
@@ -34,3 +33,16 @@ pip install -r requirements.txt
 ```bash
 python launcher.py
 ```
+
+## Comandos
+
+- **/help:** Comando de ajuda do bot.
+- **/ping:** Comando para testar a conexão com o Discord.
+- **/statistics:** Comando para mostar as estatísticas do serviço.
+- **/login:** Comando para definir a chave de API.
+- **/apps:** Comando para gerenciar as aplicações.
+- **/up:** Comando para enviar uma aplicação para a Square Cloud.
+
+## Licença
+
+MIT
