@@ -34,14 +34,9 @@ pip install -r requirements.txt
 python launcher.py
 ```
 
-## Comandos
+## Utilização
 
-- **/help:** Comando de ajuda do bot.
-- **/ping:** Comando para testar a conexão com o Discord.
-- **/statistics:** Comando para mostar as estatísticas do serviço.
-- **/login:** Comando para definir a chave de API.
-- **/apps:** Comando para gerenciar as aplicações.
-- **/up:** Comando para enviar uma aplicação para a Square Cloud.
+Após configurar e iniciar o bot, você já poderá utilizá-lo. Para começar, abra o Discord e utilize o comando `/login` para inserir sua chave da API, que pode ser obtida na [dashboard da Square Cloud](https://squarecloud.app/dashboard/account). Depois de se autenticar, você já poderá utilizar o bot por completo. Use `/ajuda` para ver a lista de comandos disponíveis.
 
 ## Licença
 
