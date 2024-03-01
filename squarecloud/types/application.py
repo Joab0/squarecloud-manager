@@ -52,3 +52,7 @@ class PartialApplicationStatus(TypedDict):
 
 class ApplicationLogs(TypedDict):
     logs: str
+
+
+class ApplicationBackup(TypedDict):
+    downloadURL: str

@@ -281,3 +281,8 @@ class Application:
     async def stop(self) -> None:
         """Stop this application."""
         await self._client.stop_app(self.id)
+
+    async def get_backup_url(self) -> str:
+        """Returns a URL to download the backup of the application files."""
+        url = await self._client.get_backup_url(self.id)
+        return url

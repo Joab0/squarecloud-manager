@@ -71,18 +71,43 @@ class Client:
         return [PartialApplicationStatus(d) for d in data]
 
     async def get_app_logs(self, id: str) -> str:
-        """Collect the latest logs from your application."""
+        """Collect the latest logs from your application.
+
+        Args:
+            id: The application's ID.
+        """
         data = await self._http.get_app_logs(id)
         return data["logs"]
 
     async def start_app(self, id: str) -> None:
-        """Start the application."""
+        """Start the application.
+
+        Args:
+            id: The application's ID.
+        """
         await self._http.start_app(id)
 
     async def restart_app(self, id: str) -> None:
-        """Restart the application."""
+        """Restart the application.
+
+        Args:
+            id: The application's ID.
+        """
         await self._http.restart_app(id)
 
     async def stop_app(self, id: str) -> None:
-        """Stop the application."""
+        """Stop the application.
+
+        Args:
+            id: The application's ID.
+        """
         await self._http.stop_app(id)
+
+    async def get_backup_url(self, id: str) -> str:
+        """Returns a URL to download the backup of the application files.
+
+        Args:
+            id: The application's ID.
+        """
+        data = await self._http.backup(id)
+        return data["downloadURL"]

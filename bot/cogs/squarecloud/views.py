@@ -114,6 +114,7 @@ class ManageApplication(BaseView):
         self.app = app
 
         self.logs.label = t("apps.buttons.logs")
+        self.backup.label = t("apps.buttons.backup")
 
         self._update_state()
 
@@ -136,14 +137,12 @@ class ManageApplication(BaseView):
 
     async def _update(self) -> None:
         # Update application information cache.
+        # Wait between each request to avoid ratelimit.
         self.app = await self.client.get_app(self.app.id)
-        await asyncio.sleep(1)
         status = await self.app.get_status()
-        await asyncio.sleep(1)
         if status.running:
             with suppress(squarecloud.NotFound):
                 await self.app.get_logs()
-                await asyncio.sleep(1)
 
     @property
     def embed(self) -> DefaultEmbed:
@@ -243,6 +242,21 @@ class ManageApplication(BaseView):
         else:
             embed = DefaultEmbed(description=f"```\n{logs}```")
             await interaction.followup.send(embed=embed, ephemeral=True)
+
+        await asyncio.sleep(5)
+        self._update_state()
+        await interaction.edit_original_response(embed=self.embed, view=self)
+
+    @ui.button(emoji="☁️", style=ButtonStyle.primary, row=1)
+    async def backup(self, interaction: discord.Interaction[BotCore], _) -> None:
+        t = self.t
+        self.disable_all()
+        await interaction.response.edit_message(view=self)
+
+        backup_url = await self.app.get_backup_url()
+        embed = DefaultEmbed(description=t("apps.backup.success"))
+        view = ui.View().add_item(ui.Button(label=t("apps.backup.download"), url=backup_url))
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
         await asyncio.sleep(5)
         self._update_state()

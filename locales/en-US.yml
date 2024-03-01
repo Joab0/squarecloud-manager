@@ -53,7 +53,12 @@ apps:
     network_total: "Network (total)"
     requests: "Requests"
   last_logs: "Last logs"
-  logs: "Logs"
+  buttons:
+    logs: "Logs"
+    backup: "Backup"
+  backup:
+    success: "Backup created successfully! Click the button below to download."
+    download: "Download"
 
 up:
   name: "up"

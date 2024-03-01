@@ -105,3 +105,7 @@ class HTTPClient:
     async def stop_app(self, id: str) -> None:
         data = await self.request(Route("POST", "/apps/{app_id}/stop", app_id=id))
         return data
+
+    async def backup(self, id: str) -> application.ApplicationBackup:
+        data = await self.request(Route("GET", "/apps/{app_id}/backup", app_id=id))
+        return data
