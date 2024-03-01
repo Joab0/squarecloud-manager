@@ -3,11 +3,14 @@ from __future__ import annotations
 import asyncio
 import io
 import math
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import discord
 from discord import ButtonStyle, ui
 from discord.utils import format_dt, utcnow
+
+import squarecloud
 
 from ...utils.embeds import DefaultEmbed
 from ...utils.views import BaseView
@@ -110,7 +113,7 @@ class ManageApplication(BaseView):
         self.client = client
         self.app = app
 
-        self.logs.label = t("apps.logs")
+        self.logs.label = t("apps.buttons.logs")
 
         self._update_state()
 
@@ -134,20 +137,20 @@ class ManageApplication(BaseView):
     async def _update(self) -> None:
         # Update application information cache.
         self.app = await self.client.get_app(self.app.id)
+        await asyncio.sleep(1)
         status = await self.app.get_status()
+        await asyncio.sleep(1)
         if status.running:
-            await self.app.get_logs()
+            with suppress(squarecloud.NotFound):
+                await self.app.get_logs()
+                await asyncio.sleep(1)
 
     @property
     def embed(self) -> DefaultEmbed:
         t = self.t
         app = self.app
 
-        embed = DefaultEmbed(
-            title=app.name,
-            description=app.description,
-            timestamp=utcnow()
-        )
+        embed = DefaultEmbed(title=app.name, description=app.description, timestamp=utcnow())
 
         if app.domain is not None:
             embed.url = "https://" + app.domain
@@ -219,7 +222,14 @@ class ManageApplication(BaseView):
         self.disable_all()
         await interaction.response.edit_message(view=self)
 
-        logs = await self.app.get_logs()
+        try:
+            logs = await self.app.get_logs()
+        except squarecloud.NotFound:
+            # Ignore
+            self._update_state()
+            await interaction.edit_original_response(embed=self.embed, view=self)
+            return
+
         lines = len(logs.splitlines())
 
         if lines > 30 or len(logs) > 2000:
@@ -234,6 +244,6 @@ class ManageApplication(BaseView):
             embed = DefaultEmbed(description=f"```\n{logs}```")
             await interaction.followup.send(embed=embed, ephemeral=True)
 
-        await asyncio.sleep(3)
+        await asyncio.sleep(5)
         self._update_state()
         await interaction.edit_original_response(embed=self.embed, view=self)

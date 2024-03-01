@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import discord
@@ -207,7 +208,7 @@ class SquareCloud(commands.Cog):
     @app_commands.command(
         name=locale_str(_t("up.name"), id="up.name"),
         description=locale_str(_t("up.description"), id="up.description"),
-        extras={"need_auth": True}
+        extras={"need_auth": True},
     )
     @app_commands.checks.cooldown(1, 15)
     async def up(self, interaction: discord.Interaction[BotCore]) -> None:
@@ -249,7 +250,8 @@ class SquareCloud(commands.Cog):
         # Get status and update internal cache.
         status = await app.get_status()
         if status.running:
-            await app.get_logs()
+            with suppress(squarecloud.NotFound):
+                await app.get_logs()
 
         view = ManageApplication(t, client, app)
 
