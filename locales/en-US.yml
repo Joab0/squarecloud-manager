@@ -2,23 +2,23 @@ ping:
   name: "ping"
   description: "Command to test the connection to Discord."
   pong: "Pong!"
-  latency: "Latência"
-  response_time: "Tempo de Resposta"
+  latency: "Latency"
+  response_time: "Response Time"
 
 help:
   name: "help"
   description: "Help command."
   response: |+
-    Olá {0}! Sou um bot de Discord que lhe permite gerenciar suas aplicações hospedadas na [Square Cloud]({1}).
-    Para começar eu preciso ter acesso a sua conta, use o comando {2} e insira sua chave de API.
-  command_list: "Lista de Comandos"
+    Hello {0}! I'm a Discord bot that allows you to manage your applications hosted on [Square Cloud]({1}).
+    To get started, I need to have access to your account, use the command {2} and enter your API key.
+  command_list: "Command List"
 
 statistics:
   name: "statistics"
   description: "Show service statistics."
-  title: "Estatísticas da Square Cloud"
-  users: "Usuários"
-  apps: "Aplicações"
+  title: "Square Cloud Statistics"
+  users: "Users"
+  apps: "Applications"
   websites: "Websites"
   ping: "Ping"
 
@@ -26,33 +26,33 @@ login:
   name: "login"
   description: "Log in to your Square Cloud account using your API key."
   modal:
-    title: "Fazer login"
+    title: "Login"
     api_key_input:
-      label: "Chave de API"
-      placeholder: "Cole sua chave de API aqui"
-  success: "Login efetuado com sucesso!"
-  failure: "Erro ao realizar login. Verifique se sua chave de API está correta e tente novamente."
+      label: "API key"
+      placeholder: "Paste your API key here"
+  success: "Login successfully!"
+  failure: "Error when logging in. Verify that your API key is correct and try again."
 
 apps:
   name: "apps"
   description: "Manage your applications."
-  no_apps: "Você não possui nenhuma aplicação hospedada na Square Cloud."
+  no_apps: "You do not have any applications hosted on Square Cloud."
   select_app:
-    title: "Selecione uma aplicação"
-    description: "Selecione uma aplicação para gerenciar no menu abaixo."
-    footer: "Página {0} de {1}"
+    title: "Select an application"
+    description: "Select an application to manage from the menu below."
+    footer: "Page {0} of {1}"
     menu:
-      label: "Selecione uma aplicação"
-  loading: "Buscando informações da aplicação..."
+      label: "Select an application"
+  loading: "Getting application information"
   status:
     uptime: "Uptime"
     cpu: "CPU"
     ram: "RAM"
-    storage: "Armazenamento"
-    network_now: "Rede (agora)"
-    network_total: "Rede (total)"
+    storage: "Storage"
+    network_now: "Network (agora)"
+    network_total: "Network (total)"
     requests: "Requests"
-  last_logs: "Últimos logs"
+  last_logs: "Last logs"
   logs: "Logs"
 
 up:
@@ -64,8 +64,8 @@ up:
     description: "File in zip format with your application files."
 
 errors:
-  on_cooldown: "Espere **{0} segundos** para utilizar este comando novamente."
+  on_cooldown: "Wait **{0} seconds** to use this command again."
   unauthenticated: |
-    Você precisa fazer login na sua conta da Square Cloud para usar este comando!
-    Você pode se autenticar usando o comando {0}.
-  unexpected_error: "Ocorreu um erro inesperado durante a execução deste comando:\n`{0}`"
+    You need to log into your Square Cloud account to use this command!
+    You can authenticate using the {0} command.
+  unexpected_error: "An unexpected error occurred while executing this command:\n`{0}`"
