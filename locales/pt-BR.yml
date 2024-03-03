@@ -56,9 +56,12 @@ apps:
   buttons:
     logs: "Logs"
     backup: "Backup"
+    settings: "Configurações"
+    delete_app: "Excluir Aplicação"
   backup:
     success: "Backup criado com sucesso! Clique no botão abaixo para fazer o download."
     download: "Fazer Download"
+  delete_confirm: "Tem certeza que deseja excluir esta aplicação? Esta ação é irreversível."
 
 up:
   name: "up"
@@ -86,3 +89,5 @@ errors:
 
 common:
   back: "Voltar"
+  confirm: "Confirmar"
+  cancel: "Cancelar"

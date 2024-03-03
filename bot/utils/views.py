@@ -13,6 +13,7 @@ from .errors import GenericError
 
 if TYPE_CHECKING:
     from ..core import BotCore
+    from .translator import Translator
 
 
 class BaseView(ui.View):
@@ -87,21 +88,21 @@ class InputText(ui.Modal):
 class ConfirmView(BaseView):
     """A view for confirm prompts."""
 
-    def __init__(self, *, labels: tuple[str, str] | None = None, timeout: float | None = 60):
+    def __init__(self, t: Translator, *, timeout: float | None = 60):
         super().__init__(timeout=timeout)
 
-        if labels is not None:
-            self.confirm.label, self.cancel.label = labels
+        self.confirm.label = t("common.confirm")
+        self.cancel.label = t("common.cancel")
 
         self.value: bool | None = None
 
-    @ui.button(label="Confirm", style=ButtonStyle.success)
+    @ui.button(style=ButtonStyle.success)
     async def confirm(self, interaction: discord.Interaction[BotCore], _) -> None:
         self.value = True
         self.interaction = interaction
         self.stop()
 
-    @ui.button(label="Cancel", style=ButtonStyle.danger)
+    @ui.button(style=ButtonStyle.danger)
     async def cancel(self, interaction: discord.Interaction[BotCore], _) -> None:
         self.value = False
         self.interaction = interaction

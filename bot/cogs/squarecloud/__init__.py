@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import io
 import zipfile
-from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import discord
@@ -18,7 +16,7 @@ from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
 from ...utils.views import InputText
-from .views import SelectApplication
+from .views import SelectApplicationView
 
 if TYPE_CHECKING:
     from ...core import BotCore
@@ -237,7 +235,7 @@ class SquareCloud(commands.Cog):
                 try:
                     with zip_file.open("squarecloud.app") as f:
                         try:
-                            config = squarecloud.ConfigFile.from_str(f.read().decode())
+                            squarecloud.ConfigFile.from_str(f.read().decode())
                         # Bad config file.
                         except TypeError:
                             raise GenericError(t("up.bad_config_file"))
@@ -278,7 +276,7 @@ class SquareCloud(commands.Cog):
         if not apps:
             raise GenericError(t("apps.no_apps"))
 
-        view = SelectApplication(t, client, apps)
+        view = SelectApplicationView(t, client, apps)
         await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
 
 
