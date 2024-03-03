@@ -20,7 +20,7 @@ class HTTPException(SquareCloudException):
         self.response: ClientResponse = response
 
         self.status: int = response.status
-        self.code: str = data["code"]
+        self.code: str | None = data.get("code")
 
         super().__init__(f"{self.status} {self.code}")
 
