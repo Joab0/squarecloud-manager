@@ -31,31 +31,38 @@ class SelectApplication(BaseView):
     pagination buttons will be added.
     """
 
-    if TYPE_CHECKING:
-        selected: PartialApplication
-        interaction: discord.Interaction[BotCore]
-
-    def __init__(self, t: Translator, apps: list[PartialApplication], *, timeout: float | None = 60) -> None:
+    def __init__(
+        self,
+        t: Translator,
+        client: Client,
+        apps: list[PartialApplication],
+        *,
+        page: int = 1,
+        timeout: float | None = 60,
+    ) -> None:
         super().__init__(timeout=timeout)
 
-        self.t = t
-        self._apps: list[PartialApplication] = apps
-        self.current_page: int = 1
+        self.t: Translator = t
+        self.client: Client = client
+        self.apps: list[PartialApplication] = apps
+        # The min function is uitl because it can occur if the user deletes
+        # the only application on the last page.
+        self.current_page: int = min(page, self.max_page)
 
         self.select.placeholder = t("apps.select_app.menu.label")
         self._update_state()
 
     @property
     def max_page(self) -> int:
-        return math.ceil(len(self._apps) / SELECT_LIMIT)
+        return math.ceil(len(self.apps) / SELECT_LIMIT)
 
     @property
-    def apps(self) -> list[PartialApplication]:
+    def current_page_apps(self) -> list[PartialApplication]:
         # To Python index.
         i = self.current_page - 1
 
         # Return current page apps.
-        return self._apps[i * SELECT_LIMIT : i * SELECT_LIMIT + SELECT_LIMIT]
+        return self.apps[i * SELECT_LIMIT : i * SELECT_LIMIT + SELECT_LIMIT]
 
     @property
     def embed(self) -> DefaultEmbed:
@@ -74,7 +81,7 @@ class SelectApplication(BaseView):
         # Create select
         self.select.options.clear()
 
-        for app in self.apps:
+        for app in self.current_page_apps:
             self.select.add_option(
                 label=app.name,
                 description=app.description,
@@ -88,8 +95,26 @@ class SelectApplication(BaseView):
 
     @ui.select(row=0)
     async def select(self, interaction: discord.Interaction[BotCore], select: ui.Select) -> None:
-        self.selected = next(app for app in self.apps if app.id == select.values[0])
-        self.interaction = interaction
+        t = self.t
+        selected = next(app for app in self.current_page_apps if app.id == select.values[0])
+        # Get full app and status.
+        embed = DefaultEmbed(description=f"⌛ **|** {t('apps.loading')}")
+
+        await interaction.response.edit_message(embed=embed, view=None)
+
+        # Get full app infos.
+        app = await self.client.get_app(selected.id)
+
+        await asyncio.sleep(1)
+
+        # Get status and update internal cache.
+        status = await app.get_status()
+        if status.running:
+            with suppress(squarecloud.NotFound):
+                await app.get_logs()
+
+        view = ManageApplication(t, self.client, app, self)
+        await interaction.edit_original_response(embed=view.embed, view=view)
         self.stop()
 
     @ui.button(emoji="⬅️", style=ButtonStyle.secondary, row=1)
@@ -106,12 +131,27 @@ class SelectApplication(BaseView):
 
 
 class ManageApplication(BaseView):
-    def __init__(self, t: Translator, client: Client, app: Application, *, timeout: float | None = 600):
+    def __init__(
+        self,
+        t: Translator,
+        client: Client,
+        app: Application,
+        parent: SelectApplication | None,
+        *,
+        timeout: float | None = 600,
+    ):
         super().__init__(timeout=timeout)
 
-        self.t = t
-        self.client = client
-        self.app = app
+        self.t: Translator = t
+        self.client: Client = client
+        self.app: Application = app
+
+        self.parent: SelectApplication | None = parent
+        self.back.label = t("common.back")
+
+        # The parent view may be null if there is only one application.
+        if self.parent is None:
+            self.remove_item(self.back)
 
         self.logs.label = t("apps.buttons.logs")
         self.backup.label = t("apps.buttons.backup")
@@ -261,3 +301,12 @@ class ManageApplication(BaseView):
         await asyncio.sleep(5)
         self._update_state()
         await interaction.edit_original_response(embed=self.embed, view=self)
+
+    @ui.button(emoji="◀️", style=ButtonStyle.secondary, row=4)
+    async def back(self, interaction: discord.Interaction[BotCore], _) -> None:
+        # Back to parent view and stop self.
+        assert self.parent is not None
+        view = type(self.parent)(self.t, self.parent.client, self.parent.apps, page=self.parent.current_page)
+        self.stop()
+
+        await interaction.response.edit_message(embed=view.embed, view=view)

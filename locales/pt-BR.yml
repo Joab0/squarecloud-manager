@@ -83,3 +83,6 @@ errors:
     Você precisa fazer login na sua conta da Square Cloud para usar este comando!
     Você pode se autenticar usando o comando {0}.
   unexpected_error: "Ocorreu um erro inesperado durante a execução deste comando:\n`{0}`"
+
+common:
+  back: "Voltar"

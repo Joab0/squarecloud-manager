@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import io
 import zipfile
 from contextlib import suppress
@@ -17,7 +18,7 @@ from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
 from ...utils.views import InputText
-from .views import ManageApplication, SelectApplication
+from .views import SelectApplication
 
 if TYPE_CHECKING:
     from ...core import BotCore
@@ -277,34 +278,8 @@ class SquareCloud(commands.Cog):
         if not apps:
             raise GenericError(t("apps.no_apps"))
 
-        # If the user only has 1 app, skip the select part.
-        if len(apps) == 1:
-            selected = apps[0]
-        else:
-            view = SelectApplication(t, apps)
-
-            await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
-
-            if await view.wait():
-                return
-
-            interaction = view.interaction
-
-            selected = view.selected
-
-        # Get full app and status.
-        embed = DefaultEmbed(description=f"**⌛ **|** {t('apps.loading')}")
-        await interaction.response.edit_message(embed=embed, view=None)
-        app = await client.get_app(selected.id)
-        # Get status and update internal cache.
-        status = await app.get_status()
-        if status.running:
-            with suppress(squarecloud.NotFound):
-                await app.get_logs()
-
-        view = ManageApplication(t, client, app)
-
-        await interaction.edit_original_response(embed=view.embed, view=view)
+        view = SelectApplication(t, client, apps)
+        await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
 
 
 async def setup(bot: BotCore) -> None:

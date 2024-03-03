@@ -83,3 +83,6 @@ errors:
     You need to log into your Square Cloud account to use this command!
     You can authenticate using the {0} command.
   unexpected_error: "An unexpected error occurred while executing this command:\n`{0}`"
+
+common:
+  back: "back"
