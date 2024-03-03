@@ -2,4 +2,4 @@
 max-line-length = 120
 ignore = F403, W503, W605, W504
 extend-ignore = E203
-exclude = **/__init__.py
+exclude = squarecloud/__init__.py
