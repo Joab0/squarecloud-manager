@@ -68,6 +68,15 @@ up:
     name: "file"
     description: "File in zip format with your application files."
 
+  invalid_file: "Formato de arquivo inválido. O arquvio da sua aplicação precisa estar no formato `zip`."
+  missing_config_file: "Sua aplicação não possui um arquivo de configuração."
+  bad_config_file: "Seu arquivo de configuração é inválido. Verifique se os valores estão preenchidos corretamente."
+  config_file_forget_key: "Você esqueceu de colocar a chave `{0}` no arquivo de configuração."
+
+  loading: "Sua aplicação está sendo enviada, aguarde..."
+  failure: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
+  success: "Sua aplicação ({0}) foi enviada com sucesso!"
+
 errors:
   on_cooldown: "Wait **{0} seconds** to use this command again."
   unauthenticated: |

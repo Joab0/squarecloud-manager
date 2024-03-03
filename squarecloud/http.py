@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import quote
 
-import httpx
+import aiohttp
 
 from .errors import AuthenticationFailure, HTTPException, NotFound
 from .types import application, statistics, user
+
+if TYPE_CHECKING:
+    from .file import File
 
 _log = logging.getLogger(__name__)
 
@@ -27,11 +30,26 @@ class Route:
 class HTTPClient:
     """HTTP client responsible for sending http requests to SqaureCloud."""
 
-    def __init__(self, api_key: str | None = None, client: httpx.AsyncClient | None = None) -> None:
-        self.__client = client or httpx.AsyncClient(timeout=60.0)  # Some routes require more time to respond
+    def __init__(self, api_key: str | None = None, session: aiohttp.ClientSession | None = None) -> None:
+        self.__session = session or None
         self.__api_key = api_key
 
+    def __del__(self) -> None:
+        # Close aiohttp session
+        import asyncio
+
+        if self.__session is not None and not self.__session.closed:
+            try:
+                loop = asyncio.get_event_loop()
+                loop.create_task(self.__session.close())
+            except RuntimeError:
+                asyncio.run(self.__session.close())
+
     async def request(self, route: Route, **kwargs: Any) -> Any:
+        # Can only be instantiated in an async function.
+        if self.__session is None:
+            self.__session = aiohttp.ClientSession()
+
         method, url = route.method, route.url
 
         headers = {}
@@ -39,33 +57,42 @@ class HTTPClient:
         if self.__api_key is not None:
             headers["Authorization"] = self.__api_key
 
-        if "json" in kwargs:
-            headers["Content-Type"] = "application/json"
-
         kwargs["headers"] = headers
 
-        request = self.__client.build_request(method, url, **kwargs)
-        response = await self.__client.send(request)
-        _log.debug(f"{method} {url} with {kwargs.get('json', '{}')} has retuned {response.status_code}")
+        if "file" in kwargs:
+            file: File = kwargs.pop("file")
 
-        if response.headers["content-type"] == "application/json; charset=utf-8":
-            data = response.json()
-        else:
-            data = None
+            form = aiohttp.FormData()
+            form.add_field("file", file.fp, filename=file.filename)
+            kwargs["data"] = form
 
-        match response.status_code:
-            case _ as status if 200 <= status < 300:
-                _log.debug(f"{method} {url} has received {data}")
-                return data.get("response") if data else data
-            case 401:
-                exc = AuthenticationFailure
-            case 404:
-                exc = NotFound
-            case _:
-                exc = HTTPException
+        async with self.__session.request(method, url, **kwargs) as response:
+            _log.debug(f"{method} {url} with {kwargs.get('json', '{}')} has retuned {response.status}")
 
-        _log.error(f"Error in {method} {url}: {response.status_code} returned: {data}")
-        raise exc(response)
+            try:
+                data = await response.json()
+            except aiohttp.ContentTypeError:
+                data = None
+
+            match response.status:
+                case _ as status if 200 <= status < 300:
+                    _log.debug(f"{method} {url} has received {data}")
+
+                    # For some reason the API returns 200 even if there is an error.
+                    # In the upload route for example.
+                    if data and data.get("status") == "error":
+                        raise HTTPException(response, data)  # type: ignore
+
+                    return data.get("response") if data else data
+                case 401:
+                    exc = AuthenticationFailure
+                case 404:
+                    exc = NotFound
+                case _:
+                    exc = HTTPException
+
+            _log.error(f"Error in {method} {url}: {response.status} returned: {data}")
+            raise exc(response, data)  # type: ignore
 
     # Service
     async def get_service_statistics(self) -> statistics.ServiceStatistics:
@@ -108,4 +135,9 @@ class HTTPClient:
 
     async def backup(self, id: str) -> application.ApplicationBackup:
         data = await self.request(Route("GET", "/apps/{app_id}/backup", app_id=id))
+        return data
+
+    async def upload(self, file: File) -> application.UploadedApplication:
+        file.fp.seek(0)
+        data = await self.request(Route("POST", "/apps/upload"), file=file)
         return data

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import io
+import zipfile
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
@@ -44,10 +46,10 @@ class SquareCloud(commands.Cog):
                 embed = ErrorEmbed(t("errors.unauthenticated", cmd.mention))
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 return False
-            interaction.extras["square_client"] = squarecloud.Client(api_key)
+            interaction.extras["square_client"] = squarecloud.Client(api_key, session=self.bot.session)
         else:
             # Client without authentication, useful for statistics command.
-            interaction.extras["square_client"] = squarecloud.Client(None)
+            interaction.extras["square_client"] = squarecloud.Client(None, session=self.bot.session)
         return True
 
     async def get_user_api_key(self, user: discord.abc.Snowflake, *, use_cached: bool = True) -> str | None:
@@ -210,9 +212,55 @@ class SquareCloud(commands.Cog):
         description=locale_str(_t("up.description"), id="up.description"),
         extras={"need_auth": True},
     )
+    @app_commands.rename(file=locale_str(_t("up.file.name"), id="up.file.name"))
+    @app_commands.describe(file=locale_str(_t("up.file.description"), id="up.file.description"))
     @app_commands.checks.cooldown(1, 15)
-    async def up(self, interaction: discord.Interaction[BotCore]) -> None:
+    async def up(self, interaction: discord.Interaction[BotCore], file: discord.Attachment) -> None:
         """Upload an app to Square Cloud."""
+        t: Translator = interaction.extras["translator"]
+        client: squarecloud.Client = interaction.extras["square_client"]
+
+        # Check here to avoid API errors.
+        if not file.filename.endswith(".zip"):
+            raise GenericError(t("up.invalid_file"))
+
+        embed = DefaultEmbed(description=f"⏳ **|** {t('up.loading')}")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        buffer = io.BytesIO()
+        await file.save(buffer)
+
+        # Prevents errors before upload by opening and verifying the file.
+        try:
+            with zipfile.ZipFile(buffer) as zip_file:
+                try:
+                    with zip_file.open("squarecloud.app") as f:
+                        try:
+                            config = squarecloud.ConfigFile.from_str(f.read().decode())
+                        # Bad config file.
+                        except TypeError:
+                            raise GenericError(t("up.bad_config_file"))
+                        # Missing keys.
+                        except ValueError as e:
+                            # The exception returns forget key.
+                            forget: str = e.args[1]
+                            raise GenericError(t("up.config_file_forget_key", forget))
+                # Config file not found.
+                except KeyError:
+                    raise GenericError(t("up.missing_config_file"))
+        # Bad zip file.
+        except zipfile.BadZipFile:
+            raise GenericError(t("up.invalid_zip_file"))
+
+        # After this verification, send the application.
+        square_file = squarecloud.File(buffer, file.filename)
+        try:
+            app = await client.upload(square_file)
+        except squarecloud.HTTPException as e:
+            raise GenericError(t("up.failure", e.code))
+
+        embed = DefaultEmbed(description=f"✅ **|** {t('up.success', app.id)}")
+        await interaction.edit_original_response(embed=embed)
 
     @app_commands.command(
         name=locale_str(_t("apps.name"), id="apps.name"),
@@ -245,7 +293,8 @@ class SquareCloud(commands.Cog):
             selected = view.selected
 
         # Get full app and status.
-        await interaction.response.edit_message(content=t("apps.loading"), embed=None, view=None)
+        embed = DefaultEmbed(description=f"**⌛ **|** {t('apps.loading')}")
+        await interaction.response.edit_message(embed=embed, view=None)
         app = await client.get_app(selected.id)
         # Get status and update internal cache.
         status = await app.get_status()
@@ -255,7 +304,7 @@ class SquareCloud(commands.Cog):
 
         view = ManageApplication(t, client, app)
 
-        await interaction.edit_original_response(content=None, embed=view.embed, view=view)
+        await interaction.edit_original_response(embed=view.embed, view=view)
 
 
 async def setup(bot: BotCore) -> None:

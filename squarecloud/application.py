@@ -8,6 +8,7 @@ from .types import application
 
 if TYPE_CHECKING:
     from .client import Client
+    from .types.application import VersionType
 
 # Regex to extract network information. The api returns formatted.
 NETWORK_RE = re.compile(r"\d+(?:\.\d+)?\s*[KMGT]?B")
@@ -286,3 +287,66 @@ class Application:
         """Returns a URL to download the backup of the application files."""
         url = await self._client.get_backup_url(self.id)
         return url
+
+
+class ApplicationLanguage:
+    """Object that represents the application's programming language.
+
+    Attributes:
+        name: Programming language name.
+        name: Programming language version. Must be `recommended` or `latest`.
+    """
+
+    __slots__ = ("name", "version")
+
+    def __init__(self, data: application.ApplicationLanguage) -> None:
+        self.name: str = data["name"]
+        self.version: VersionType = data["version"]
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} name={self.name!r} version={self.version!r}>"
+
+
+class UploadedApplication:
+    """Object returned when upload an application to Square Cloud.
+
+    Attributes:
+        id: The ID of the uploaded application.
+        name: The name of the uploaded application.
+        description: The description of the uploaded application.
+        subdomain: The subdomain of the uploaded application (null if not applicable).
+        ram: The RAM usage of the uploaded application in MB.
+        cpu: The CPU usage of the uploaded application.
+    """
+
+    __all__ = (
+        "id",
+        "name",
+        "description",
+        "subdomain",
+        "ram",
+        "cpu",
+        "language",
+    )
+
+    def __init__(self, data: application.UploadedApplication) -> None:
+        self.id: str = data["id"]
+        self.name: str = data["tag"]
+        self.description: str | None = data.get("description")
+        self.subdomain: str | None = data["subdomain"]
+        self.ram: int = data["ram"]
+        self.cpu: int = data["cpu"]
+        self.language: ApplicationLanguage = ApplicationLanguage(data["language"])
+
+    def __repr__(self) -> str:
+        attrs = (
+            "id",
+            "name",
+            "description",
+            "subdomain",
+            "ram",
+            "cpu",
+            "language",
+        )
+        fmt = " ".join(f"{a}={getattr(self, a)!r}" for a in attrs)
+        return f"<{self.__class__.__name__} {fmt}>"

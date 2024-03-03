@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, TypedDict
 
-    VersionType = Literal["recommended", "latest"]
+    from .types.application import VersionType
 
     class _ConfigFile(TypedDict):
         main: str
@@ -16,6 +16,9 @@ if TYPE_CHECKING:
         description: NotRequired[str]
         autorestart: NotRequired[bool]
         start: NotRequired[str]
+
+
+__all__ = ("ConfigFile",)
 
 
 class ConfigFile:
@@ -123,17 +126,21 @@ class ConfigFile:
             fields[key.lower()] = value
 
         # Adjusts the type of keys.
-        data: _ConfigFile = {
-            # Required
-            "main": fields["main"],
-            "memory": int(fields["memory"]),
-            "version": fields["version"],  # type: ignore
-            "display_name": fields["display_name"],
-            # Not required
-            "subdomain": fields.get("subdomain"),
-            "description": fields.get("description"),
-            "autorestart": fields.get("autorestart", "false").lower() == "true",
-            "start": fields.get("start"),
-        }
+        try:
+            data: _ConfigFile = {
+                # Required
+                "main": fields["main"],
+                "memory": int(fields["memory"]),
+                "version": fields["version"],  # type: ignore
+                "display_name": fields["display_name"],
+                # Not required
+                "subdomain": fields.get("subdomain"),
+                "description": fields.get("description"),
+                "autorestart": fields.get("autorestart", "false").lower() == "true",
+                "start": fields.get("start"),
+            }
+        except KeyError as e:
+            forget = e.args[0].upper()
+            raise ValueError(f"Bad config file. You forget {forget!r} key.", forget)
 
         return cls(**data)

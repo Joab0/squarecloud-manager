@@ -2,7 +2,9 @@
 
 from .application import *
 from .client import *
+from .config import *
 from .errors import *
+from .file import *
 from .statistics import *
 from .user import *
 

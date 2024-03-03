@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from typing_extensions import NotRequired, TypedDict
+
+VersionType = Literal["recommended", "latest"]
 
 
 # Returned in /user
@@ -56,3 +60,18 @@ class ApplicationLogs(TypedDict):
 
 class ApplicationBackup(TypedDict):
     downloadURL: str
+
+
+class ApplicationLanguage(TypedDict):
+    name: str
+    version: VersionType
+
+
+class UploadedApplication(TypedDict):
+    id: str
+    tag: str
+    description: NotRequired[str]
+    subdomain: str | None
+    ram: int
+    cpu: int
+    language: ApplicationLanguage

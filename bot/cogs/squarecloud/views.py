@@ -247,7 +247,7 @@ class ManageApplication(BaseView):
         self._update_state()
         await interaction.edit_original_response(embed=self.embed, view=self)
 
-    @ui.button(emoji="☁️", style=ButtonStyle.primary, row=1)
+    @ui.button(emoji="☁️", style=ButtonStyle.secondary, row=1)
     async def backup(self, interaction: discord.Interaction[BotCore], _) -> None:
         t = self.t
         self.disable_all()

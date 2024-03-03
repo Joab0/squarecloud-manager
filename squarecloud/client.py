@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from .application import (
     Application,
     ApplicationStatus,
     PartialApplication,
     PartialApplicationStatus,
+    UploadedApplication,
 )
 from .http import HTTPClient
 from .statistics import ServiceStatistics
 from .user import User
+
+if TYPE_CHECKING:
+    from .file import File
 
 __all__ = ("Client",)
 
@@ -17,8 +23,8 @@ class Client:
     """Client to interact with Square Cloud API."""
 
     # The api key may be none. This is useful for public routes.
-    def __init__(self, api_key: str | None = None, *, http_client: HTTPClient | None = None) -> None:
-        self._http = http_client or HTTPClient(api_key)
+    def __init__(self, api_key: str | None = None, **kwargs: Any) -> None:
+        self._http = HTTPClient(api_key, **kwargs)
 
     # Public
     async def get_services_statistics(self) -> ServiceStatistics:
@@ -111,3 +117,12 @@ class Client:
         """
         data = await self._http.backup(id)
         return data["downloadURL"]
+
+    async def upload(self, file: File) -> UploadedApplication:
+        """Upload an application to Square Cloud.
+
+        Args:
+            file: Zip file with your application files.
+        """
+        data = await self._http.upload(file)
+        return UploadedApplication(data)

@@ -6,6 +6,7 @@ import sqlite3
 from contextlib import suppress
 from typing import Any
 
+import aiohttp
 import aiosqlite
 import discord
 from discord import app_commands
@@ -145,11 +146,15 @@ class BotCore(commands.Bot):
         await self.connect_db()
         await self.load_extensions()
 
+        # For requests
+        self.session = aiohttp.ClientSession()
+
         await super().start(token, reconnect=reconnect)
 
     async def close(self):
         log.info("Exiting...")
         with suppress(AttributeError):
             await self.db.close()
+            await self.session.close()
 
         await super().close()
