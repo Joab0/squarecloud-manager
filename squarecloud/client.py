@@ -126,3 +126,11 @@ class Client:
         """
         data = await self._http.upload(file)
         return UploadedApplication(data)
+
+    async def delete_app(self, id: str) -> None:
+        """Delete an application.
+
+        Args:
+            id: The application's ID.
+        """
+        await self._http.delete_app(id)

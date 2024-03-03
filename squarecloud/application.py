@@ -288,6 +288,10 @@ class Application:
         url = await self._client.get_backup_url(self.id)
         return url
 
+    async def delete(self) -> None:
+        """Delete this application."""
+        await self._client.delete_app(self.id)
+
 
 class ApplicationLanguage:
     """Object that represents the application's programming language.

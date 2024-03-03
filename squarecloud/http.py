@@ -141,3 +141,6 @@ class HTTPClient:
         file.fp.seek(0)
         data = await self.request(Route("POST", "/apps/upload"), file=file)
         return data
+
+    async def delete_app(self, id: str) -> None:
+        await self.request(Route("DELETE", "/apps/{app_id}/delete", app_id=id))
