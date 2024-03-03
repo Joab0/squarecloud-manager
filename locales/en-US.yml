@@ -43,7 +43,7 @@ apps:
     footer: "Page {0} of {1}"
     menu:
       label: "Select an application"
-  loading: "Getting application information"
+  loading: "Getting application information..."
   status:
     uptime: "Uptime"
     cpu: "CPU"
