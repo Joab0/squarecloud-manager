@@ -49,7 +49,7 @@ apps:
     cpu: "CPU"
     ram: "RAM"
     storage: "Storage"
-    network_now: "Network (agora)"
+    network_now: "Network (now)"
     network_total: "Network (total)"
     requests: "Requests"
   last_logs: "Last logs"
@@ -61,7 +61,7 @@ apps:
   backup:
     success: "Backup created successfully! Click the button below to download."
     download: "Download"
-  delete_confirm: "Tem certeza que deseja excluir esta aplicação? Esta ação é irreversível."
+  delete_confirm: "Are you sure you want to delete this application? This action is irreversible."
 
 up:
   name: "up"
@@ -71,14 +71,14 @@ up:
     name: "file"
     description: "File in zip format with your application files."
 
-  invalid_file: "Formato de arquivo inválido. O arquvio da sua aplicação precisa estar no formato `zip`."
-  missing_config_file: "Sua aplicação não possui um arquivo de configuração."
-  bad_config_file: "Seu arquivo de configuração é inválido. Verifique se os valores estão preenchidos corretamente."
-  config_file_forget_key: "Você esqueceu de colocar a chave `{0}` no arquivo de configuração."
+  invalid_file: "Invalid file format. Your application file must be in `zip` format."
+  missing_config_file: "Your application does not have a configuration file."
+  bad_config_file: "Your configuration file is invalid. Check that the values are filled in correctly."
+  config_file_forget_key: "You forgot to put the `{0}` key in the configuration file."
 
-  loading: "Sua aplicação está sendo enviada, aguarde..."
-  failure: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
-  success: "Sua aplicação ({0}) foi enviada com sucesso!"
+  loading: "Your application is being uploaded, please wait..."
+  failure: "We were unable to upload your application.\nError code: `{0}`"
+  success: "Your application ({0}) has been successfully uploaded!"
 
 errors:
   on_cooldown: "Wait **{0} seconds** to use this command again."
