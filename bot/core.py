@@ -13,7 +13,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from .utils.embeds import DefaultEmbed
-from .utils.translator import Translator
+from .utils.translator import AppCommandsTranslator, Translator
 
 log = logging.getLogger(__name__)
 
@@ -130,6 +130,9 @@ class BotCore(commands.Bot):
         await super().on_message(message)
 
     async def setup_hook(self) -> None:
+        # Setup translator.
+        await self.tree.set_translator(AppCommandsTranslator())
+
         # Sync and cache commands.
         guild = discord.Object(os.environ["GUILD_ID"])
 
