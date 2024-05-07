@@ -43,7 +43,8 @@ class BotCore(commands.Bot):
             **kwargs,
         )
 
-        DefaultEmbed.set_default_color(0x2563EB)
+        if (color_s := os.getenv("DEFAULT_COLOR")) is not None:
+            DefaultEmbed.set_default_color(discord.Color.from_str(color_s))
 
         Translator.load("./locales")
 
@@ -56,7 +57,9 @@ class BotCore(commands.Bot):
     def update_app_commands_cache(self, commands: list[app_commands.AppCommand]) -> None:
         """Update application commands cache."""
 
-        def unpack(options: list[app_commands.AppCommand | app_commands.AppCommandGroup | app_commands.Argument]):
+        def unpack(
+            options: list[app_commands.AppCommand | app_commands.AppCommandGroup | app_commands.Argument],
+        ):
             for option in options:
                 if isinstance(option, app_commands.AppCommandGroup):
                     self.app_commands[option.qualified_name] = option
