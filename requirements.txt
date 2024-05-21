@@ -1,9 +1,8 @@
-aiosqlite
-discord.py
-httpx
-humanize
-pytest
-python-dotenv
-PyYAML
-rich
-typing_extensions
+aiohttp==3.9.1
+aiosqlite==0.20.0
+discord.py==2.3.2
+humanize==4.9.0
+python-dotenv==1.0.1
+PyYAML==6.0.1
+rich==13.7.1
+typing_extensions==4.11.0
