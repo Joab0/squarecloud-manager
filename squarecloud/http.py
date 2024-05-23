@@ -144,3 +144,9 @@ class HTTPClient:
 
     async def delete_app(self, id: str) -> None:
         await self.request(Route("DELETE", "/apps/{app_id}/delete", app_id=id))
+
+    async def commit(self, id: str, file: File, restart: bool) -> None:
+        file.fp.seek(0)
+        await self.request(
+            Route("POST", "/apps/{app_id}/commit?restart={restart}", app_id=id, restart=restart), file=file
+        )

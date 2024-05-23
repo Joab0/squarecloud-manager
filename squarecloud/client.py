@@ -134,3 +134,13 @@ class Client:
             id: The application's ID.
         """
         await self._http.delete_app(id)
+
+    async def commit(self, id: str, file: File, restart: bool | None = None) -> None:
+        """Send a change to your application.
+
+        Args:
+            id: The application's ID.
+            file: Single file or compress (zip).
+            restart: Set to true if you want to restart the application after the commit.
+        """
+        await self._http.commit(id, file, restart or False)

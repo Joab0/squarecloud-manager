@@ -8,6 +8,7 @@ from .types import application
 
 if TYPE_CHECKING:
     from .client import Client
+    from .file import File
     from .types.application import VersionType
 
 # Regex to extract network information. The api returns formatted.
@@ -291,6 +292,16 @@ class Application:
     async def delete(self) -> None:
         """Delete this application."""
         await self._client.delete_app(self.id)
+
+    async def commit(self, file: File, restart: bool) -> None:
+        """Send a change to your application.
+
+        Args:
+            id: The application's ID.
+            file: Single file or compress (zip).
+            restart: Set to true if you want to restart the application after the commit.
+        """
+        await self._client.commit(self.id, file, restart)
 
 
 class ApplicationLanguage:
