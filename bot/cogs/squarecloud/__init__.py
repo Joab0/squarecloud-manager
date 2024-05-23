@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import zipfile
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import discord
@@ -16,7 +17,7 @@ from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
 from ...utils.views import InputText
-from .views import SelectApplicationView
+from .views import ManageApplicationView, SelectApplicationView
 
 if TYPE_CHECKING:
     from ...core import BotCore
@@ -274,10 +275,82 @@ class SquareCloud(commands.Cog):
 
         apps = await client.get_all_apps()
         if not apps:
-            raise GenericError(t("apps.no_apps"))
+            raise GenericError(t("errors.no_apps"))
 
-        view = SelectApplicationView(t, client, apps)
+        view = SelectApplicationView(t, client, apps, context="apps")
         await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
+
+        if await view.wait():
+            return
+        interaction = view.interaction
+        selected = view.selected
+
+        # Get full app and status.
+        embed = DefaultEmbed(description=f"⌛ **|** {t('apps.loading')}")
+
+        await interaction.response.edit_message(embed=embed, view=None)
+
+        # Get full app infos.
+        app = await client.get_app(selected.id)
+        # Get status and update internal cache.
+        status = await app.get_status()
+        if status.running:
+            with suppress(squarecloud.NotFound):
+                await app.get_logs()
+
+        view = ManageApplicationView(t, client, app)
+        await interaction.edit_original_response(embed=view.embed, view=view)
+
+    @app_commands.command(
+        name=locale_str(_t("commit.name"), id="commit.name"),
+        description=locale_str(_t("commit.description"), id="commit.description"),
+        extras={"need_auth": True},
+    )
+    @app_commands.rename(
+        file=locale_str(_t("commit.file.name"), id="commit.file.name"),
+        restart=locale_str(_t("commit.restart.name"), id="commit.restart.name"),
+    )
+    @app_commands.describe(
+        file=locale_str(_t("commit.file.description"), id="commit.file.description"),
+        restart=locale_str(_t("commit.restart.description"), id="commit.restart.description"),
+    )
+    @app_commands.checks.cooldown(1, 15)
+    async def commit(
+        self,
+        interaction: discord.Interaction[BotCore],
+        file: discord.Attachment,
+        restart: bool | None = None,
+    ) -> None:
+        t: Translator = interaction.extras["translator"]
+        client: squarecloud.Client = interaction.extras["square_client"]
+
+        apps = await client.get_all_apps()
+        if not apps:
+            raise GenericError(t("errors.no_apps"))
+
+        view = SelectApplicationView(t, client, apps, context="commit")
+        await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
+
+        if await view.wait():
+            return
+
+        interaction = view.interaction
+        app = view.selected
+
+        embed = DefaultEmbed(description=t("commit.loading"))
+
+        await interaction.response.edit_message(embed=embed, view=None)
+
+        data = await file.read()
+        commit_file = squarecloud.File(data, filename=file.filename)
+
+        try:
+            await client.commit(id=app.id, file=commit_file, restart=restart)
+        except squarecloud.HTTPException:
+            raise GenericError(t("commit.error"), interaction=interaction)
+
+        embed.description = t("commit.success")
+        await interaction.edit_original_response(embed=embed)
 
 
 async def setup(bot: BotCore) -> None:

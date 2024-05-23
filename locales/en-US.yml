@@ -36,7 +36,6 @@ login:
 apps:
   name: "apps"
   description: "Manage your applications."
-  no_apps: "You do not have any applications hosted on Square Cloud."
   select_app:
     title: "Select an application"
     description: "Select an application to manage from the menu below."
@@ -80,7 +79,30 @@ up:
   failure: "We were unable to upload your application.\nError code: `{0}`"
   success: "Your application ({0}) has been successfully uploaded!"
 
+commit:
+  name: "commit"
+  description: "Send changes to an application"
+
+  file:
+    name: "file"
+    description: "The file you want to send. You can send multiple files by compressing them into a zip."
+  restart:
+    name: "restart"
+    description: "Whether to restart after commit."
+
+  select_app:
+    title: "Select an application"
+    description: "Select an application from the menu below to send changes."
+    footer: "Page {0} of {1}"
+    menu:
+      label: "Select an application"
+
+  loading: "The commit is processing, please wait."
+  success: "Commit completed successfully."
+  error: "Error when committing."
+
 errors:
+  no_apps: "You do not have any applications hosted on Square Cloud."
   on_cooldown: "Wait **{0} seconds** to use this command again."
   unauthenticated: |
     You need to log into your Square Cloud account to use this command!

@@ -36,7 +36,6 @@ login:
 apps:
   name: "apps"
   description: "Gerencie suas aplicações."
-  no_apps: "Você não possui nenhuma aplicação hospedada na Square Cloud."
   select_app:
     title: "Selecione uma aplicação"
     description: "Selecione uma aplicação para gerenciar no menu abaixo."
@@ -80,7 +79,30 @@ up:
   failure: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
   success: "Sua aplicação ({0}) foi enviada com sucesso!"
 
+commit:
+  name: "commit"
+  description: "Send changes to an application"
+
+  file:
+    name: "arquivo"
+    description: "O arquivo que você deseja enviar. Você pode enviar vários arquivos compactando-os em um zip."
+  restart:
+    name: "reiniciar"
+    description: "Se deve reiniciar depois do commit."
+
+  select_app:
+    title: "Selecione uma aplicação"
+    description: "Selecione uma aplicação no menu abixo para enviar as alterações."
+    footer: "Página {0} de {1}"
+    menu:
+      label: "Selecione uma aplicação"
+
+  loading: "O commit está sendo processado, aguarde."
+  success: "Commit realizado com sucesso."
+  error: "Erro ao realizar o commit."
+
 errors:
+  no_apps: "Você não possui nenhuma aplicação hospedada na Square Cloud."
   on_cooldown: "Espere **{0} segundos** para utilizar este comando novamente."
   unauthenticated: |
     Você precisa fazer login na sua conta da Square Cloud para usar este comando!
