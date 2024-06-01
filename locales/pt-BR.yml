@@ -101,6 +101,15 @@ commit:
   success: "Commit realizado com sucesso."
   error: "Erro ao realizar o commit."
 
+host:
+  name: "host"
+  description: "Hospeda este bot automaticamente na Square Cloud"
+  uploading: "Enviando este bot para a Square Cloud, aguarde..."
+  success: >
+    Este bot foi enviado com sucesso para a Square Cloud!
+    O bot será encerrado localmente e deverá estar disponível em instantes.
+  error: "Error uploading this bot to Square Cloud.\n{0}"
+
 errors:
   no_apps: "Você não possui nenhuma aplicação hospedada na Square Cloud."
   on_cooldown: "Espere **{0} segundos** para utilizar este comando novamente."

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import os
 import zipfile
 from contextlib import suppress
 from typing import TYPE_CHECKING
@@ -60,7 +61,6 @@ class SquareCloud(commands.Cog):
         """Returns a user's API key."""
         # Checks if the user has a cached API key.
         if use_cached and user.id in self._api_keys_cache:
-            print("Using cache key")
             api_key = self._api_keys_cache[user.id]
             return api_key
 
@@ -357,6 +357,47 @@ class SquareCloud(commands.Cog):
 
         embed.description = t("commit.success")
         await interaction.edit_original_response(embed=embed)
+
+    # If the bot is running on Square Cloud,
+    # there is an env var called "HOSTNAME" with the value of "squarecloud.app".
+    if os.getenv("HOSTNAME") != "squarecloud.app":
+
+        @app_commands.command(
+            name=locale_str(_t("host.name"), id="host.name"),
+            description=locale_str(_t("host.description"), id="host.description"),
+            extras={"need_auth": True},
+        )
+        @app_commands.checks.cooldown(1, 15)  # Avoid multi uploads.
+        async def host(self, interaction: discord.Interaction[BotCore]) -> None:
+            """Automatically hosts this bot."""
+            t: Translator = interaction.extras["translator"]
+            client: squarecloud.Client = interaction.extras["square_client"]
+
+            embed = DefaultEmbed(
+                description=t("host.uploading"),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "a", zipfile.ZIP_DEFLATED) as zf:
+                for dirname, _, files in os.walk("./"):
+                    zf.write(dirname)
+                    for filename in files:
+                        zf.write(os.path.join(dirname, filename))
+
+            buffer.seek(0)
+            file = squarecloud.File(buffer, "./bot.zip")
+
+            try:
+                await client.upload(file)
+            except squarecloud.HTTPException as e:
+                raise GenericError(t("host.error", e.code))
+
+            embed.description = t("host.success")
+
+            await interaction.edit_original_response(embed=embed)
+
+            await self.bot.close()
 
 
 async def setup(bot: BotCore) -> None:
