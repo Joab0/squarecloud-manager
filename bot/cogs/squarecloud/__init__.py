@@ -38,24 +38,29 @@ class SquareCloud(commands.Cog):
     async def interaction_check(self, interaction: discord.Interaction[BotCore], /) -> bool:  # type: ignore
         # Checks if a command needs authentication.
         need_auth: bool = interaction.command.extras.get("need_auth", False)  # type: ignore
+
         if need_auth:
             api_key = await self.get_user_api_key(interaction.user)
+
             if api_key is None:
                 t: Translator = interaction.extras["translator"]
                 cmd = self.bot.get_app_command("login")
                 embed = ErrorEmbed(t("errors.unauthenticated", cmd.mention))
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 return False
+
             interaction.extras["square_client"] = squarecloud.Client(api_key, session=self.bot.session)
         else:
             # Client without authentication, useful for statistics command.
             interaction.extras["square_client"] = squarecloud.Client(None, session=self.bot.session)
+
         return True
 
     async def get_user_api_key(self, user: discord.abc.Snowflake, *, use_cached: bool = True) -> str | None:
         """Returns a user's API key."""
         # Checks if the user has a cached API key.
         if use_cached and user.id in self._api_keys_cache:
+            print("Using cache key")
             api_key = self._api_keys_cache[user.id]
             return api_key
 
@@ -83,6 +88,7 @@ class SquareCloud(commands.Cog):
         if api_key is not None:
             try:
                 await client.me()
+                self._api_keys_cache[user.id] = api_key
             except squarecloud.AuthenticationFailure:
                 # The API key is invalid, remove it from the database.
                 await self.remove_api_key(user)
