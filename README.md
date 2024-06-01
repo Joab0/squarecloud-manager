@@ -1,43 +1,49 @@
 # Square Cloud Manager
 
-O Square Cloud Manager é um bot para Discord que permtie gerenciar suas aplicações hospedadas na [Square Cloud](https://squarecloud.app/).
+## Translations
 
-## Requisitos
+- [Português](README-pt-BR.md)
+
+Square Cloud Manager is a bot for Discord that allows you to manage your applications hosted on [Square Cloud](https://squarecloud.app/).
+
+## Requirements
 
 - [Python 3.10^](https://python.org)
 - [Git](https://git-scm.com/)
 
-## Instalação
+## Setup
 
-Siga os passoas abaixo para fazer a instalação.
+Follow the steps below to setup.
 
-1. Clone o repositório.
+- Clone the repo.
 
 ```bash
 git clone https://github.com/Joab0/squarecloud-manager
 cd squarecloud-manager
 ```
 
-- Instale as dependências.
+- Install dependencies.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-- Renomeie o arquivo [.env.example](.env.example) para `.env`.
+- Rename the [.env.example](.env.example) file to `.env`.
 
-- Abra o arquivo `.env` e faça as devidas alterações.
+- open the `.env` file and make the necessary changes.
 
-- Rode o bot.
+- Run the bot.
 
 ```bash
 python launcher.py
 ```
 
-## Utilização
+## Usage
 
-Após configurar e iniciar o bot, você já poderá utilizá-lo. Para começar, abra o Discord e utilize o comando `/login` para inserir sua chave da API, que pode ser obtida na [dashboard da Square Cloud](https://squarecloud.app/dashboard/account). Depois de se autenticar, você já poderá utilizar o bot por completo. Use `/ajuda` para ver a lista de comandos disponíveis.
+After configuring and launching the bot, you can now use it. To get started, open Discord and use the `/login` command to setup your API key, which can be obtained from the [Square Cloud dashboard](https://squarecloud.app/dashboard/account). After authenticating, you will be able to use the bot fully. Use `/help` to see the list of available commands.
+> [!TIP]
+> To host this bot on Square Cloud, use the `/host` command and it will be hosted automatically.
 
-## Licença
+## License
 
 MIT
