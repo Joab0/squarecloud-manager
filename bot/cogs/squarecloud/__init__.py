@@ -386,7 +386,7 @@ class SquareCloud(commands.Cog):
                         zf.write(os.path.join(dirname, filename))
 
             buffer.seek(0)
-            file = squarecloud.File(buffer, "./bot.zip")
+            file = squarecloud.File(buffer, "bot.zip")
 
             try:
                 await client.upload(file)
