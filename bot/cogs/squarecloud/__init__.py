@@ -205,7 +205,7 @@ class SquareCloud(commands.Cog):
             # Check if API key is valid.
             await client.me()
         except squarecloud.errors.AuthenticationFailure:
-            raise GenericError(t("login.failure"), interaction)
+            raise GenericError(t("login.error"), interaction)
 
         await self.save_api_key(interaction.user, api_key)
 
@@ -263,9 +263,10 @@ class SquareCloud(commands.Cog):
         try:
             app = await client.upload(square_file)
         except squarecloud.HTTPException as e:
-            raise GenericError(t("up.failure", e.code))
+            raise GenericError(t("up.error", e.code))
 
         embed = DefaultEmbed(description=f"✅ **|** {t('up.success', app.id)}")
+
         await interaction.edit_original_response(embed=embed)
 
     @app_commands.command(

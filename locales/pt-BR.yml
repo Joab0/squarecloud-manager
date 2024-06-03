@@ -25,13 +25,15 @@ statistics:
 login:
   name: "login"
   description: "Faça login na sua conta da Square Cloud usando sua chave de API."
+
   modal:
     title: "Fazer login"
     api_key_input:
       label: "Chave de API"
       placeholder: "Cole sua chave de API aqui"
+
   success: "Login efetuado com sucesso!"
-  failure: "Erro ao realizar login. Verifique se sua chave de API está correta e tente novamente."
+  error: "Erro ao realizar login. Verifique se sua chave de API está correta e tente novamente."
 
 apps:
   name: "apps"
@@ -76,7 +78,7 @@ up:
   config_file_forget_key: "Você esqueceu de colocar a chave `{0}` no arquivo de configuração."
 
   loading: "Sua aplicação está sendo enviada, aguarde..."
-  failure: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
+  error: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
   success: "Sua aplicação ({0}) foi enviada com sucesso!"
 
 commit:

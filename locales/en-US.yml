@@ -25,13 +25,15 @@ statistics:
 login:
   name: "login"
   description: "Log in to your Square Cloud account using your API key."
+
   modal:
     title: "Login"
     api_key_input:
       label: "API key"
       placeholder: "Paste your API key here"
+
   success: "Login successfully!"
-  failure: "Error when logging in. Verify that your API key is correct and try again."
+  error: "Error when logging in. Verify that your API key is correct and try again."
 
 apps:
   name: "apps"
@@ -76,7 +78,7 @@ up:
   config_file_forget_key: "You forgot to put the `{0}` key in the configuration file."
 
   loading: "Your application is being uploaded, please wait..."
-  failure: "We were unable to upload your application.\nError code: `{0}`"
+  error: "We were unable to upload your application.\nError code: `{0}`"
   success: "Your application ({0}) has been successfully uploaded!"
 
 commit:
