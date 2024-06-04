@@ -16,7 +16,7 @@ import squarecloud
 from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
-from ...utils.views import InputText
+from ...utils.views import ConfirmView, InputText
 from .views import ManageApplicationView, SelectApplicationView, UploadedApplicationView
 
 if TYPE_CHECKING:
@@ -106,7 +106,6 @@ class SquareCloud(commands.Cog):
                 await cursor.execute(
                     """
                     UPDATE
-                    FROM
                         api_keys
                     SET
                         api_key = ?
@@ -182,11 +181,39 @@ class SquareCloud(commands.Cog):
         except squarecloud.errors.AuthenticationFailure:
             raise GenericError(t("login.error"), interaction)
 
+        success_embed = DefaultEmbed(description=f"✅ **|** {t('login.success')}")
+
+        if not (owner := self.bot.application.owner) == interaction.user:  # type: ignore
+            await self.save_api_key(interaction.user, api_key)
+            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            return
+
+        embed = DefaultEmbed(
+            title=f'⚠️ **|** {t("login.trust_warning.title")}',
+            description=t("login.trust_warning.description", f"[{owner.name}](https://discord.com/users/{owner.id})"),
+        )
+
+        view = ConfirmView(t)
+        view.add_item(
+            ui.Button(label=t("login.trust_warning.learn_more"), url="https://github.com/Joab0/squarecloud-manager")
+        )
+
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+        view.confirm.disabled = True
+        view.cancel.disabled = True
+        if await view.wait():
+            await interaction.edit_original_response(view=view)
+            return
+
+        interaction = view.interaction
+
+        if not view.value:
+            await interaction.response.edit_message(view=view)
+            return
+
         await self.save_api_key(interaction.user, api_key)
-
-        embed = DefaultEmbed(description=f"✅ **|** {t('login.success')}")
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.edit_message(embed=success_embed, view=None)
 
     @app_commands.command(
         name=locale_str(_t("up.name"), id="up.name"),
@@ -346,6 +373,7 @@ class SquareCloud(commands.Cog):
             extras={"need_auth": True},
         )
         @app_commands.checks.cooldown(1, 15)  # Avoid multi uploads.
+        @app_commands.default_permissions(administrator=True)
         async def host(self, interaction: discord.Interaction[BotCore]) -> None:
             """Automatically hosts this bot."""
             t: Translator = interaction.extras["translator"]

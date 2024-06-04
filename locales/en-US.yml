@@ -19,6 +19,16 @@ login:
   name: "login"
   description: "Log in to your Square Cloud account using your API key."
 
+  trust_warning:
+    title: "Do you trust the owner of this bot?"
+    description: >
+      I detected that you are not my owner.
+      If you enter your credentials, {0} will be granted access.
+
+      I'm an open-source bot and you can host me easily.
+      Click the button below to learn more.
+    learn_more: "Learn More"
+
   modal:
     title: "Login"
     api_key_input:
