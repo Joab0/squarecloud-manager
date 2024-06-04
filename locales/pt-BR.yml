@@ -1,6 +1,7 @@
 ping:
   name: "ping"
   description: "Commando para testar a conexão com o Discord."
+
   pong: "Pong!"
   latency: "Latência"
   response_time: "Tempo de Resposta"
@@ -8,6 +9,7 @@ ping:
 help:
   name: "ajuda"
   description: "Comando de ajuda."
+
   response: |+
     Olá {0}! Sou um bot de Discord que lhe permite gerenciar suas aplicações hospedadas na [Square Cloud]({1}).
     Para começar eu preciso ter acesso a sua conta, use o comando {2} e insira sua chave de API.
@@ -29,13 +31,16 @@ login:
 apps:
   name: "apps"
   description: "Gerencie suas aplicações."
+
   select_app:
     title: "Selecione uma aplicação"
     description: "Selecione uma aplicação para gerenciar no menu abaixo."
     footer: "Página {0} de {1}"
     menu:
       label: "Selecione uma aplicação"
+
   loading: "Buscando informações da aplicação..."
+
   status:
     uptime: "Uptime"
     cpu: "CPU"
@@ -44,15 +49,19 @@ apps:
     network_now: "Rede (agora)"
     network_total: "Rede (total)"
     requests: "Requests"
+
   last_logs: "Últimos logs"
+
   buttons:
     logs: "Logs"
     backup: "Backup"
     settings: "Configurações"
     delete_app: "Excluir Aplicação"
+
   backup:
     success: "Backup criado com sucesso! Clique no botão abaixo para fazer o download."
     download: "Fazer Download"
+
   delete_confirm: "Tem certeza que deseja excluir esta aplicação? Esta ação é irreversível."
 
 up:
@@ -100,6 +109,7 @@ commit:
 host:
   name: "host"
   description: "Hospeda este bot automaticamente na Square Cloud"
+
   uploading: "Enviando este bot para a Square Cloud, aguarde..."
   success: >
     Este bot foi enviado com sucesso para a Square Cloud!
