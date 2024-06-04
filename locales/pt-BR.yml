@@ -86,7 +86,7 @@ up:
 
 commit:
   name: "commit"
-  description: "Send changes to an application"
+  description: "Envia alterações para uma aplicação."
 
   file:
     name: "arquivo"
@@ -108,7 +108,7 @@ commit:
 
 host:
   name: "host"
-  description: "Hospeda este bot automaticamente na Square Cloud"
+  description: "Hospeda este bot automaticamente na Square Cloud."
 
   uploading: "Enviando este bot para a Square Cloud, aguarde..."
   success: >
