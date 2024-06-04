@@ -92,7 +92,7 @@ class HTTPClient:
                     exc = HTTPException
 
             _log.error(f"Error in {method} {url}: {response.status} returned: {data}")
-            raise exc(response, data)  # type: ignore
+            raise exc(response, data or {})
 
     # Service
     async def get_service_statistics(self) -> statistics.ServiceStatistics:
