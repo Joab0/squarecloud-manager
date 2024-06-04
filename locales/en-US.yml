@@ -81,6 +81,9 @@ up:
   error: "We were unable to upload your application.\nError code: `{0}`"
   success: "Your application ({0}) has been successfully uploaded!"
 
+  go_to_dashboard: "Go to Dashboard"
+  manage_app: "Manage Application"
+
 commit:
   name: "commit"
   description: "Send changes to an application"

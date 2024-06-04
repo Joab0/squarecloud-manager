@@ -81,6 +81,9 @@ up:
   error: "Não foi possível enviar sua aplicação.\nCódigo de erro: `{0}`"
   success: "Sua aplicação ({0}) foi enviada com sucesso!"
 
+  go_to_dashboard: "Ir para a Dashboard"
+  manage_app: "Gerenciar Aplicação"
+
 commit:
   name: "commit"
   description: "Send changes to an application"

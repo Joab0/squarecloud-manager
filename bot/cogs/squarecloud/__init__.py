@@ -18,7 +18,7 @@ from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
 from ...utils.views import InputText
-from .views import ManageApplicationView, SelectApplicationView
+from .views import ManageApplicationView, SelectApplicationView, UploadedApplicationView
 
 if TYPE_CHECKING:
     from ...core import BotCore
@@ -267,7 +267,9 @@ class SquareCloud(commands.Cog):
 
         embed = DefaultEmbed(description=f"✅ **|** {t('up.success', app.id)}")
 
-        await interaction.edit_original_response(embed=embed)
+        view = UploadedApplicationView(t, client, app)
+
+        await interaction.edit_original_response(embed=embed, view=view)
 
     @app_commands.command(
         name=locale_str(_t("apps.name"), id="apps.name"),
@@ -305,7 +307,7 @@ class SquareCloud(commands.Cog):
             with suppress(squarecloud.NotFound):
                 await app.get_logs()
 
-        view = ManageApplicationView(t, client, app)
+        view = ManageApplicationView(t, app)
         await interaction.edit_original_response(embed=view.embed, view=view)
 
     @app_commands.command(

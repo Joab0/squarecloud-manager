@@ -11,6 +11,7 @@ from discord import ButtonStyle, ui
 from discord.utils import format_dt, utcnow
 
 import squarecloud
+from squarecloud.application import UploadedApplication
 
 from ...utils.embeds import DefaultEmbed
 from ...utils.views import BaseView, ConfirmView
@@ -30,7 +31,6 @@ class ApplicationSettingsView(BaseView):
     def __init__(
         self,
         t: Translator,
-        client: Client,
         app: Application,
         parent: ManageApplicationView,
         *,
@@ -39,7 +39,6 @@ class ApplicationSettingsView(BaseView):
         super().__init__(timeout=timeout)
 
         self.t: Translator = t
-        self.client: Client = client
         self.app: Application = app
         self.parent: ManageApplicationView = parent
 
@@ -78,7 +77,7 @@ class ApplicationSettingsView(BaseView):
     @ui.button(emoji="◀️", style=ButtonStyle.secondary, row=4)
     async def back(self, interaction: discord.Interaction[BotCore], _) -> None:
         # Back to parent view and stop self.
-        view = type(self.parent)(self.t, self.client, self.parent.app)
+        view = type(self.parent)(self.t, self.parent.app)
         self.stop()
 
         await interaction.response.edit_message(embed=view.embed, view=view)
@@ -180,7 +179,6 @@ class ManageApplicationView(BaseView):
     def __init__(
         self,
         t: Translator,
-        client: Client,
         app: Application,
         *,
         timeout: float | None = 600,
@@ -188,7 +186,6 @@ class ManageApplicationView(BaseView):
         super().__init__(timeout=timeout)
 
         self.t: Translator = t
-        self.client: Client = client
         self.app: Application = app
 
         self.logs.label = t("apps.buttons.logs")
@@ -217,7 +214,7 @@ class ManageApplicationView(BaseView):
     async def _update(self) -> None:
         # Update application information cache.
         # Wait between each request to avoid ratelimit.
-        self.app = await self.client.get_app(self.app.id)
+        self.app = await self.app._client.get_app(self.app.id)
         status = await self.app.get_status()
         if status.running:
             with suppress(squarecloud.NotFound):
@@ -343,8 +340,33 @@ class ManageApplicationView(BaseView):
 
     @ui.button(emoji="⚙️", style=ButtonStyle.secondary, row=2)
     async def settings(self, interaction: discord.Interaction[BotCore], _) -> None:
-        view = ApplicationSettingsView(self.t, self.client, self.app, self)
+        view = ApplicationSettingsView(self.t, self.app, self)
         await interaction.response.edit_message(view=view)
         self.stop()
 
     # TODO: Add back button.
+
+
+class UploadedApplicationView(BaseView):
+    def __init__(self, t: Translator, client: Client, app: UploadedApplication, *, timeout: float | None = 300):
+        super().__init__(timeout=timeout)
+        self.t = t
+        self.client = client
+        self.app = app
+
+        self.add_item(ui.Button(label=t("up.go_to_dashboard"), url=f"https://squarecloud.app/dashboard/app/{app.id}"))
+        self.manage_app.label = t("up.manage_app")
+
+    @ui.button(emoji="⚙️", style=ButtonStyle.blurple)
+    async def manage_app(self, interaction: discord.Interaction[BotCore], _) -> None:
+        self.stop()
+
+        self.disable_all()
+        await interaction.response.edit_message(view=self)
+
+        app = await self.client.get_app(self.app.id)
+        await app.get_status()
+
+        view = ManageApplicationView(self.t, app)
+
+        await interaction.edit_original_response(embed=view.embed, view=view)
