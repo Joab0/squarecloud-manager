@@ -13,15 +13,6 @@ help:
     To get started, I need to have access to your account, use the command {2} and enter your API key.
   command_list: "Command List"
 
-statistics:
-  name: "statistics"
-  description: "Show service statistics."
-  title: "Square Cloud Statistics"
-  users: "Users"
-  apps: "Applications"
-  websites: "Websites"
-  ping: "Ping"
-
 login:
   name: "login"
   description: "Log in to your Square Cloud account using your API key."

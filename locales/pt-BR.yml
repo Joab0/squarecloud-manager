@@ -13,15 +13,6 @@ help:
     Para começar eu preciso ter acesso a sua conta, use o comando {2} e insira sua chave de API.
   command_list: "Lista de Comandos"
 
-statistics:
-  name: "estatísticas"
-  description: "Mostra as estatísticas do serviço."
-  title: "Estatísticas da Square Cloud"
-  users: "Usuários"
-  apps: "Aplicações"
-  websites: "Websites"
-  ping: "Ping"
-
 login:
   name: "login"
   description: "Faça login na sua conta da Square Cloud usando sua chave de API."

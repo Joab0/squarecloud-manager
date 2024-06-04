@@ -10,7 +10,6 @@ import discord
 from discord import app_commands, ui
 from discord.app_commands import locale_str
 from discord.ext import commands
-from discord.utils import utcnow
 
 import squarecloud
 
@@ -145,30 +144,6 @@ class SquareCloud(commands.Cog):
             )
 
             await self.bot.db.commit()
-
-    @app_commands.command(
-        name=locale_str(_t("statistics.name"), id="statistics.name"),
-        description=locale_str(_t("statistics.description"), id="statistics.description"),
-    )
-    @app_commands.checks.cooldown(1, 5)
-    async def statistics(self, interaction: discord.Interaction[BotCore]) -> None:
-        """Command to get current host statistics."""
-        t: Translator = interaction.extras["translator"]
-        client: squarecloud.Client = interaction.extras["square_client"]
-        stats = await client.get_services_statistics()
-
-        embed = DefaultEmbed(
-            title=t("statistics.title"),
-            description=(
-                f"**{t('statistics.users')}:** {stats.users}\n"
-                f"**{t('statistics.apps')}:** {stats.apps}\n"
-                f"**{t('statistics.websites')}:** {stats.websites}\n"
-                f"**{t('statistics.ping')}:** {stats.ping}ms\n"
-            ),
-            timestamp=utcnow(),
-        )
-
-        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
         name=locale_str(_t("login.name"), id="login.name"),

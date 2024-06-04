@@ -7,7 +7,7 @@ from urllib.parse import quote
 import aiohttp
 
 from .errors import AuthenticationFailure, HTTPException, NotFound
-from .types import application, statistics, user
+from .types import application, user
 
 if TYPE_CHECKING:
     from .file import File
@@ -93,11 +93,6 @@ class HTTPClient:
 
             _log.error(f"Error in {method} {url}: {response.status} returned: {data}")
             raise exc(response, data or {})
-
-    # Service
-    async def get_service_statistics(self) -> statistics.ServiceStatistics:
-        data = await self.request(Route("GET", "/service/statistics"))
-        return data
 
     # User
     async def me(self) -> user.UserData:

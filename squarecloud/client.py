@@ -10,7 +10,6 @@ from .application import (
     UploadedApplication,
 )
 from .http import HTTPClient
-from .statistics import ServiceStatistics
 from .user import User
 
 if TYPE_CHECKING:
@@ -25,12 +24,6 @@ class Client:
     # The api key may be none. This is useful for public routes.
     def __init__(self, api_key: str | None = None, **kwargs: Any) -> None:
         self._http = HTTPClient(api_key, **kwargs)
-
-    # Public
-    async def get_services_statistics(self) -> ServiceStatistics:
-        """Returns statistics about the service.."""
-        data = await self._http.get_service_statistics()
-        return ServiceStatistics(data)
 
     # User
     async def me(self) -> User:
