@@ -50,23 +50,26 @@ class ApplicationSettingsView(BaseView):
         t = self.t
 
         embed = DefaultEmbed(description=f"⚠️ **|** {t('apps.delete_confirm')}")
-        confirm = ConfirmView(self.t, timeout=30)
+        view = ConfirmView(self.t, timeout=30)
 
-        await interaction.response.edit_message(embed=embed, view=confirm)
+        await interaction.response.edit_message(embed=embed, view=view)
 
-        await confirm.wait()
+        await view.wait()
 
         # Timeout
-        if confirm.value is None:
+        if view.value is None:
             await interaction.edit_original_response(embed=self.parent.embed, view=self)
             return
 
-        interaction = confirm.interaction
+        interaction = view.interaction
 
         # Cancel
-        if not confirm.value:
+        if not view.value:
             await interaction.response.edit_message(embed=self.parent.embed, view=self)
             return
+
+        view.disable_all()
+        await interaction.response.edit_message(view=view)
 
         await self.app.delete()
 
