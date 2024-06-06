@@ -4,7 +4,7 @@ import asyncio
 import io
 import math
 from contextlib import suppress
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ButtonStyle, ui
@@ -14,6 +14,7 @@ import squarecloud
 from squarecloud.application import UploadedApplication
 
 from ...utils.embeds import DefaultEmbed
+from ...utils.errors import GenericError
 from ...utils.views import BaseView, ConfirmView
 
 if TYPE_CHECKING:
@@ -27,23 +28,144 @@ if TYPE_CHECKING:
 SELECT_LIMIT = 25
 
 
-class ApplicationSettingsView(BaseView):
+class _BaseSelectApplicationView(BaseView):
+    """A view to select applications, if you exceed the Discord limit,
+    pagination buttons will be added.
+    """
+
+    def __init__(
+        self,
+        apps: list[PartialApplication],
+        *,
+        page: int = 1,
+        timeout: float | None = 300,
+    ) -> None:
+        super().__init__(timeout=timeout)
+
+        self.apps: list[PartialApplication] = apps
+        self.current_page: int = min(page, self.max_page)
+
+        self._update_state()
+
+    @property
+    def max_page(self) -> int:
+        return math.ceil(len(self.apps) / SELECT_LIMIT)
+
+    @property
+    def current_page_apps(self) -> list[PartialApplication]:
+        # To Python index.
+        i = self.current_page - 1
+
+        # Return current page apps.
+        return self.apps[i * SELECT_LIMIT : i * SELECT_LIMIT + SELECT_LIMIT]
+
+    @property
+    def embed(self) -> DefaultEmbed:
+        return NotImplemented
+
+    def _update_state(self) -> None:
+        # If there is only 1 page remove the navigation buttons.
+        if self.max_page == 1:
+            self.remove_item(self.previous_page)
+            self.remove_item(self.next_page)
+
+        # Create select
+        self.select.options.clear()
+
+        for app in self.current_page_apps:
+            self.select.add_option(
+                label=app.name,
+                description=app.description,
+                emoji="🌐" if app.is_website else "🖥️",
+                value=app.id,
+            )
+
+        # Update buttons state
+        self.previous_page.disabled = self.current_page == 1
+        self.next_page.disabled = self.current_page == self.max_page
+
+    async def callback(self, interaction: discord.Interaction[BotCore], partial_app: PartialApplication) -> None:
+        raise NotImplementedError()
+
+    @ui.select(row=0)
+    async def select(self, interaction: discord.Interaction[BotCore], select: ui.Select) -> None:
+        self.stop()
+
+        app = next(app for app in self.current_page_apps if app.id == select.values[0])
+        await self.callback(interaction, app)
+
+    @ui.button(emoji="⬅️", style=ButtonStyle.secondary, row=1)
+    async def previous_page(self, interaction: discord.Interaction[BotCore], _) -> None:
+        self.current_page -= 1
+        self._update_state()
+        await interaction.response.edit_message(embed=self.embed, view=self)
+
+    @ui.button(emoji="➡️", style=ButtonStyle.secondary, row=1)
+    async def next_page(self, interaction: discord.Interaction[BotCore], _) -> None:
+        self.current_page += 1
+        self._update_state()
+        await interaction.response.edit_message(embed=self.embed, view=self)
+
+
+class SelectApplicationToManageView(_BaseSelectApplicationView):
     def __init__(
         self,
         t: Translator,
-        app: Application,
+        client: Client,
+        apps: list[PartialApplication],
+        *,
+        page: int = 1,
+        timeout: float | None = 300,
+    ) -> None:
+        super().__init__(apps, page=page, timeout=timeout)
+
+        self.t: Translator = t
+        self.client: Client = client
+
+        self.select.placeholder = t("apps.select_app.placeholder")
+
+    @property
+    def embed(self) -> DefaultEmbed:
+        t = self.t
+        return DefaultEmbed(
+            title=t("apps.select_app.title"),
+            description=t("apps.select_app.description"),
+        ).set_footer(text=t("apps.select_app.footer", self.current_page, self.max_page))
+
+    async def callback(self, interaction: discord.Interaction[BotCore], partial_app: PartialApplication) -> None:
+        t = self.t
+        # Get full app and status.
+        embed = DefaultEmbed(description=f"⌛ **|** {t('apps.loading')}")
+
+        await interaction.response.edit_message(embed=embed, view=None)
+
+        # Get full app infos.
+        app = await self.client.get_app(partial_app.id)
+        # Get status and update internal cache.
+        status = await app.get_status()
+        if status.running:
+            with suppress(squarecloud.NotFound):
+                await app.get_logs()
+
+        view = ManageApplicationView(t, app)
+        await interaction.edit_original_response(embed=view.embed, view=view)
+
+
+class ApplicationSettingsView(BaseView):
+    def __init__(
+        self,
         parent: ManageApplicationView,
         *,
         timeout: float | None = 300,
     ):
         super().__init__(timeout=timeout)
 
-        self.t: Translator = t
-        self.app: Application = app
+        self.t: Translator = parent.t
+        self.app: Application = parent.app
         self.parent: ManageApplicationView = parent
 
-        self.delete.label = t("apps.buttons.delete_app")
-        self.back.label = t("common.back")
+        self.delete.label = self.t("apps.buttons.delete_app")
+        self.back.label = self.t("common.back")
 
     @ui.button(emoji="🗑️", style=ButtonStyle.danger)
     async def delete(self, interaction: discord.Interaction[BotCore], _) -> None:
@@ -73,9 +195,16 @@ class ApplicationSettingsView(BaseView):
 
         await self.app.delete()
 
-        # TODO: Back to select apps menu.
+        client = self.app._client
+        apps = await client.get_all_apps()
 
-        await interaction.delete_original_response()
+        if not apps:
+            await interaction.delete_original_response()
+            return
+
+        view = SelectApplicationToManageView(self.t, client, apps)
+
+        await interaction.edit_original_response(embed=view.embed, view=view)
 
     @ui.button(emoji="◀️", style=ButtonStyle.secondary, row=4)
     async def back(self, interaction: discord.Interaction[BotCore], _) -> None:
@@ -84,98 +213,6 @@ class ApplicationSettingsView(BaseView):
         self.stop()
 
         await interaction.response.edit_message(embed=view.embed, view=view)
-
-
-class SelectApplicationView(BaseView):
-    """A view to select applications, if you exceed the Discord limit,
-    pagination buttons will be added.
-    """
-
-    if TYPE_CHECKING:
-        interaction: discord.Interaction[BotCore]
-        selected: PartialApplication
-
-    def __init__(
-        self,
-        t: Translator,
-        client: Client,
-        apps: list[PartialApplication],
-        context: Literal["apps", "commit"],
-        *,
-        page: int = 1,
-        timeout: float | None = 60,
-    ) -> None:
-        super().__init__(timeout=timeout)
-
-        self.t: Translator = t
-        self.client: Client = client
-        self.apps: list[PartialApplication] = apps
-        self.context: Literal["apps", "commit"] = context
-        # The min function is uitl because it can occur if the user deletes
-        # the only application on the last page.
-        self.current_page: int = min(page, self.max_page)
-
-        self.select.placeholder = t(f"{self.context}.select_app.menu.label")
-        self._update_state()
-
-    @property
-    def max_page(self) -> int:
-        return math.ceil(len(self.apps) / SELECT_LIMIT)
-
-    @property
-    def current_page_apps(self) -> list[PartialApplication]:
-        # To Python index.
-        i = self.current_page - 1
-
-        # Return current page apps.
-        return self.apps[i * SELECT_LIMIT : i * SELECT_LIMIT + SELECT_LIMIT]
-
-    @property
-    def embed(self) -> DefaultEmbed:
-        t = self.t
-        return DefaultEmbed(
-            title=t(f"{self.context}.select_app.title"),
-            description=t(f"{self.context}.select_app.description"),
-        ).set_footer(text=t(f"{self.context}.select_app.footer", self.current_page, self.max_page))
-
-    def _update_state(self) -> None:
-        # If there is only 1 page remove the navigation buttons.
-        if self.max_page == 1:
-            self.remove_item(self.previous_page)
-            self.remove_item(self.next_page)
-
-        # Create select
-        self.select.options.clear()
-
-        for app in self.current_page_apps:
-            self.select.add_option(
-                label=app.name,
-                description=app.description,
-                emoji="🌐" if app.is_website else "🖥️",
-                value=app.id,
-            )
-
-        # Update buttons state
-        self.previous_page.disabled = self.current_page == 1
-        self.next_page.disabled = self.current_page == self.max_page
-
-    @ui.select(row=0)
-    async def select(self, interaction: discord.Interaction[BotCore], select: ui.Select) -> None:
-        self.interaction = interaction
-        self.selected = next(app for app in self.current_page_apps if app.id == select.values[0])
-        self.stop()
-
-    @ui.button(emoji="⬅️", style=ButtonStyle.secondary, row=1)
-    async def previous_page(self, interaction: discord.Interaction[BotCore], _) -> None:
-        self.current_page -= 1
-        self._update_state()
-        await interaction.response.edit_message(embed=self.embed, view=self)
-
-    @ui.button(emoji="➡️", style=ButtonStyle.secondary, row=1)
-    async def next_page(self, interaction: discord.Interaction[BotCore], _) -> None:
-        self.current_page += 1
-        self._update_state()
-        await interaction.response.edit_message(embed=self.embed, view=self)
 
 
 class ManageApplicationView(BaseView):
@@ -194,6 +231,7 @@ class ManageApplicationView(BaseView):
         self.logs.label = t("apps.buttons.logs")
         self.backup.label = t("apps.buttons.backup")
         self.settings.label = t("apps.buttons.settings")
+        self.back.label = t("common.back")
 
         self._update_state()
 
@@ -343,11 +381,22 @@ class ManageApplicationView(BaseView):
 
     @ui.button(emoji="⚙️", style=ButtonStyle.secondary, row=2)
     async def settings(self, interaction: discord.Interaction[BotCore], _) -> None:
-        view = ApplicationSettingsView(self.t, self.app, self)
+        view = ApplicationSettingsView(self)
         await interaction.response.edit_message(view=view)
         self.stop()
 
-    # TODO: Add back button.
+    @ui.button(emoji="◀️", style=ButtonStyle.secondary, row=4)
+    async def back(self, interaction: discord.Interaction[BotCore], _) -> None:
+        self.stop()
+
+        self.disable_all()
+        await interaction.response.edit_message(view=self)
+
+        client = self.app._client
+        apps = await client.get_all_apps()
+        view = SelectApplicationToManageView(self.t, client, apps)
+
+        await interaction.edit_original_response(embed=view.embed, view=view)
 
 
 class UploadedApplicationView(BaseView):
@@ -373,3 +422,48 @@ class UploadedApplicationView(BaseView):
         view = ManageApplicationView(self.t, app)
 
         await interaction.edit_original_response(embed=view.embed, view=view)
+
+
+class SelectApplicationToCommitView(_BaseSelectApplicationView):
+    def __init__(
+        self,
+        t: Translator,
+        client: Client,
+        apps: list[PartialApplication],
+        file: squarecloud.File,
+        *,
+        restart: bool | None = None,
+        page: int = 1,
+        timeout: float | None = 300,
+    ) -> None:
+        super().__init__(apps, page=page, timeout=timeout)
+
+        self.t: Translator = t
+        self.client: Client = client
+        self.file: squarecloud.File = file
+        self.restart: bool | None = restart
+
+        self.select.placeholder = t("commit.select_app.placeholder")
+
+    @property
+    def embed(self) -> DefaultEmbed:
+        t = self.t
+        return DefaultEmbed(
+            title=t("commit.select_app.title"),
+            description=t("commit.select_app.description"),
+        ).set_footer(text=t("commit.select_app.footer", self.current_page, self.max_page))
+
+    async def callback(self, interaction: discord.Interaction[BotCore], partial_app: PartialApplication) -> None:
+        t = self.t
+
+        embed = DefaultEmbed(description=f'⌛ **|** {t("commit.loading")}')
+
+        await interaction.response.edit_message(embed=embed, view=None)
+
+        try:
+            await self.client.commit(id=partial_app.id, file=self.file, restart=self.restart)
+        except squarecloud.HTTPException:
+            raise GenericError(t("commit.error"), interaction)
+
+        embed = DefaultEmbed(description=f'✅ **|** {t("commit.success")}')
+        await interaction.edit_original_response(embed=embed)

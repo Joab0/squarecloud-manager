@@ -46,8 +46,7 @@ apps:
     title: "Select an application"
     description: "Select an application to manage from the menu below."
     footer: "Page {0} of {1}"
-    menu:
-      label: "Select an application"
+    placeholder: "Select an application"
 
   loading: "Getting application information..."
 
@@ -109,8 +108,7 @@ commit:
     title: "Select an application"
     description: "Select an application from the menu below to send changes."
     footer: "Page {0} of {1}"
-    menu:
-      label: "Select an application"
+    placeholder: "Select an application"
 
   loading: "The commit is processing, please wait."
   success: "Commit completed successfully."

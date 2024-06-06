@@ -46,8 +46,7 @@ apps:
     title: "Selecione uma aplicação"
     description: "Selecione uma aplicação para gerenciar no menu abaixo."
     footer: "Página {0} de {1}"
-    menu:
-      label: "Selecione uma aplicação"
+    placeholder: "Selecione uma aplicação"
 
   loading: "Buscando informações da aplicação..."
 
@@ -109,8 +108,7 @@ commit:
     title: "Selecione uma aplicação"
     description: "Selecione uma aplicação no menu abixo para enviar as alterações."
     footer: "Página {0} de {1}"
-    menu:
-      label: "Selecione uma aplicação"
+    placeholder: "Selecione uma aplicação"
 
   loading: "O commit está sendo processado, aguarde."
   success: "Commit realizado com sucesso."

@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import os
 import zipfile
-from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import discord
@@ -17,7 +16,11 @@ from ...utils.embeds import DefaultEmbed, ErrorEmbed
 from ...utils.errors import GenericError
 from ...utils.translator import Translator
 from ...utils.views import ConfirmView, InputText
-from .views import ManageApplicationView, SelectApplicationView, UploadedApplicationView
+from .views import (
+    SelectApplicationToCommitView,
+    SelectApplicationToManageView,
+    UploadedApplicationView,
+)
 
 if TYPE_CHECKING:
     from ...core import BotCore
@@ -288,29 +291,8 @@ class SquareCloud(commands.Cog):
         if not apps:
             raise GenericError(t("errors.no_apps"))
 
-        view = SelectApplicationView(t, client, apps, context="apps")
+        view = SelectApplicationToManageView(t, client, apps)
         await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
-
-        if await view.wait():
-            return
-        interaction = view.interaction
-        selected = view.selected
-
-        # Get full app and status.
-        embed = DefaultEmbed(description=f"⌛ **|** {t('apps.loading')}")
-
-        await interaction.response.edit_message(embed=embed, view=None)
-
-        # Get full app infos.
-        app = await client.get_app(selected.id)
-        # Get status and update internal cache.
-        status = await app.get_status()
-        if status.running:
-            with suppress(squarecloud.NotFound):
-                await app.get_logs()
-
-        view = ManageApplicationView(t, app)
-        await interaction.edit_original_response(embed=view.embed, view=view)
 
     @app_commands.command(
         name=locale_str(_t("commit.name"), id="commit.name"),
@@ -339,29 +321,13 @@ class SquareCloud(commands.Cog):
         if not apps:
             raise GenericError(t("errors.no_apps"))
 
-        view = SelectApplicationView(t, client, apps, context="commit")
-        await interaction.response.send_message(embed=view.embed, view=view, ephemeral=True)
-
-        if await view.wait():
-            return
-
-        interaction = view.interaction
-        app = view.selected
-
-        embed = DefaultEmbed(description=t("commit.loading"))
-
-        await interaction.response.edit_message(embed=embed, view=None)
+        await interaction.response.defer(ephemeral=True)
 
         data = await file.read()
         commit_file = squarecloud.File(data, filename=file.filename)
 
-        try:
-            await client.commit(id=app.id, file=commit_file, restart=restart)
-        except squarecloud.HTTPException:
-            raise GenericError(t("commit.error"), interaction=interaction)
-
-        embed.description = t("commit.success")
-        await interaction.edit_original_response(embed=embed)
+        view = SelectApplicationToCommitView(t, client, apps, commit_file, restart=restart)
+        await interaction.edit_original_response(embed=view.embed, view=view)
 
     # If the bot is running on Square Cloud,
     # there is an env var called "HOSTNAME" with the value of "squarecloud.app".
