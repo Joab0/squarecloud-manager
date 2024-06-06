@@ -5,7 +5,11 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from rich.logging import RichHandler
+
+try:
+    from rich.logging import RichHandler
+except ImportError:
+    RichHandler = None
 
 from bot.core import BotCore
 
@@ -23,12 +27,17 @@ def setup_logging() -> None:
     log = logging.getLogger()
     log.setLevel(logging.INFO)
 
-    log.addHandler(
-        RichHandler(
-            omit_repeated_times=False,
-            rich_tracebacks=True,
+    if RichHandler is not None:
+        log.addHandler(
+            RichHandler(
+                omit_repeated_times=False,
+                rich_tracebacks=True,
+            )
         )
-    )
+    else:
+        from discord.utils import setup_logging
+
+        setup_logging()
 
 
 setup_logging()

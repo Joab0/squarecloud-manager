@@ -10,6 +10,7 @@ Square Cloud Manager is a bot for Discord that allows you to manage your applica
 
 - [Python 3.10^](https://python.org)
 - [Git](https://git-scm.com/)
+- [Rich](https://github.com/Textualize/rich/) (optional)
 
 ## Setup
 
