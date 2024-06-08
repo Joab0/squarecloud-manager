@@ -299,10 +299,10 @@ class ManageApplicationView(BaseView):
                     break
                 logs += line + "\n"
 
-            if not logs:
+            if not logs and lines:
                 logs = lines[-1][:512]
 
-            embed.add_field(name=t("apps.last_logs"), value=f"```\n{logs}```")
+            embed.add_field(name=t("apps.last_logs"), value=f"```\n{logs}```", inline=False)
 
         return embed
 
